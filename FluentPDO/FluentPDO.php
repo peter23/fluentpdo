@@ -28,8 +28,9 @@ class FluentPDO {
 	/** @var boolean|callback */
 	public $debug;
 
-	function __construct(PDO $pdo, FluentStructure $structure = null) {
-		$this->pdo = $pdo;
+	function __construct($dsn, $username = '', $password = '', FluentStructure $structure = null) {
+		$this->pdo = new PDO($dsn, $username, $password);
+		$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
 		if (!$structure) {
 			$structure = new FluentStructure;
 		}

@@ -18,7 +18,14 @@ class SelectQuery extends CommonQuery implements Countable {
 
 	private $fromTable, $fromAlias;
 
-	function __construct(FluentPDO $fpdo, $from) {
+	function __construct(FluentPDO $fpdo, $from, $raw_query = false, $raw_query_params = array()) {
+		if($raw_query) {
+			parent::__construct($fpdo, array());
+			$this->raw_query = $raw_query;
+			$this->raw_query_params = $raw_query_params;
+			return;
+		}
+
 		$clauses = array(
 			'SELECT' => ', ',
 			'FROM' => null,

@@ -27,6 +27,8 @@ abstract class BaseQuery implements IteratorAggregate {
 
 	protected $statements = array(), $parameters = array();
 
+	protected $raw_query = false, $raw_query_params = false;
+
 	protected function __construct(FluentPDO $fpdo, $clauses) {
 		$this->fpdo = $fpdo;
 		$this->clauses = $clauses;
@@ -96,8 +98,13 @@ abstract class BaseQuery implements IteratorAggregate {
 	 * @return \PDOStatement
 	 */
 	public function execute() {
-		$query = $this->buildQuery();
-		$parameters = $this->buildParameters();
+		if(!$this->raw_query) {
+			$query = $this->buildQuery();
+			$parameters = $this->buildParameters();
+		} else {
+			$query = $this->raw_query;
+			$parameters = $this->raw_query_params;
+		}
 
 		$result = $this->fpdo->getPdo()->prepare($query);
 
@@ -742,6 +749,22 @@ class FluentPDO {
 		return call_user_func_array(array($this, 'delete'), $args);
 	}
 
+
+	public function query($q, $p = array()) {
+		return new SelectQuery($this, null, $q, $p);
+	}
+
+
+	public function exec($q, $p = array()) {
+		$query = new SelectQuery($this, null, $q, $p);
+		if($query->execute()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+
 	/** @return \PDO
 	 */
 	public function getPdo() {
@@ -983,7 +1006,14 @@ class SelectQuery extends CommonQuery implements Countable {
 
 	private $fromTable, $fromAlias;
 
-	function __construct(FluentPDO $fpdo, $from) {
+	function __construct(FluentPDO $fpdo, $from, $raw_query = false, $raw_query_params = array()) {
+		if($raw_query) {
+			parent::__construct($fpdo, array());
+			$this->raw_query = $raw_query;
+			$this->raw_query_params = $raw_query_params;
+			return;
+		}
+
 		$clauses = array(
 			'SELECT' => ', ',
 			'FROM' => null,

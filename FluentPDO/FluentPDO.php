@@ -108,6 +108,22 @@ class FluentPDO {
 		return call_user_func_array(array($this, 'delete'), $args);
 	}
 
+
+	public function query($q, $p = array()) {
+		return new SelectQuery($this, null, $q, $p);
+	}
+
+
+	public function exec($q, $p = array()) {
+		$query = new SelectQuery($this, null, $q, $p);
+		if($query->execute()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+
 	/** @return \PDO
 	 */
 	public function getPdo() {

@@ -21,6 +21,8 @@ abstract class BaseQuery implements IteratorAggregate {
 
 	protected $statements = array(), $parameters = array();
 
+	protected $raw_query = false, $raw_query_params = false;
+
 	protected function __construct(FluentPDO $fpdo, $clauses) {
 		$this->fpdo = $fpdo;
 		$this->clauses = $clauses;
@@ -90,8 +92,13 @@ abstract class BaseQuery implements IteratorAggregate {
 	 * @return \PDOStatement
 	 */
 	public function execute() {
-		$query = $this->buildQuery();
-		$parameters = $this->buildParameters();
+		if(!$this->raw_query) {
+			$query = $this->buildQuery();
+			$parameters = $this->buildParameters();
+		} else {
+			$query = $this->raw_query;
+			$parameters = $this->raw_query_params;
+		}
 
 		$result = $this->fpdo->getPdo()->prepare($query);
 

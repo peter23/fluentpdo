@@ -98,13 +98,8 @@ abstract class BaseQuery implements IteratorAggregate {
 	 * @return \PDOStatement
 	 */
 	public function execute() {
-		if(!$this->raw_query) {
-			$query = $this->buildQuery();
-			$parameters = $this->buildParameters();
-		} else {
-			$query = $this->raw_query;
-			$parameters = $this->raw_query_params;
-		}
+		$query = $this->buildQuery();
+		$parameters = $this->buildParameters();
 
 		$result = $this->fpdo->getPdo()->prepare($query);
 
@@ -217,6 +212,8 @@ abstract class BaseQuery implements IteratorAggregate {
 	 * @throws Exception
 	 */
 	protected function buildQuery() {
+		if($this->raw_query)  return $this->raw_query;
+
 		$query = '';
 		foreach ($this->clauses as $clause => $separator) {
 			if ($this->clauseNotEmpty($clause)) {
@@ -243,6 +240,8 @@ abstract class BaseQuery implements IteratorAggregate {
 	}
 
 	private function buildParameters() {
+		if($this->raw_query)  return $this->raw_query_params;
+
 		$parameters = array();
 		foreach ($this->parameters as $clauses) {
 			if (is_array($clauses)) {
@@ -1034,7 +1033,7 @@ class SelectQuery extends CommonQuery implements Countable {
 		$this->fromAlias = end($fromParts);
 
 		$this->statements['FROM'] = $from;
-		$this->statements['SELECT'][] = $this->fromAlias . '.*';
+		//$this->statements['SELECT'][] = $this->fromAlias . '.*';
 		$this->joins[] = $this->fromAlias;
 	}
 
@@ -1050,6 +1049,13 @@ class SelectQuery extends CommonQuery implements Countable {
 	 */
 	public function getFromAlias() {
 		return $this->fromAlias;
+	}
+
+	protected function buildQuery() {
+		if(!isset($this->statements['SELECT']) || !$this->statements['SELECT']) {
+			$this->statements['SELECT'][] = $this->fromAlias . '.*';
+		}
+		return parent::buildQuery();
 	}
 
 	/** Returns a single column

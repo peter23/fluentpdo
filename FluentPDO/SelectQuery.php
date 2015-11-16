@@ -46,7 +46,7 @@ class SelectQuery extends CommonQuery implements Countable {
 		$this->fromAlias = end($fromParts);
 
 		$this->statements['FROM'] = $from;
-		$this->statements['SELECT'][] = $this->fromAlias . '.*';
+		//$this->statements['SELECT'][] = $this->fromAlias . '.*';
 		$this->joins[] = $this->fromAlias;
 	}
 
@@ -62,6 +62,13 @@ class SelectQuery extends CommonQuery implements Countable {
 	 */
 	public function getFromAlias() {
 		return $this->fromAlias;
+	}
+
+	protected function buildQuery() {
+		if(!isset($this->statements['SELECT']) || !$this->statements['SELECT']) {
+			$this->statements['SELECT'][] = $this->fromAlias . '.*';
+		}
+		return parent::buildQuery();
 	}
 
 	/** Returns a single column
